@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="list-group shadow-sm">
+            <a href="{{ url_for('users.greetings', name='John') }}" class="list-group-item list-group-item-action">
+                👋 Привіт, John
+            </a>
+            <a href="{{ url_for('users.greetings', name='Anna') }}?age=25" class="list-group-item list-group-item-action">
+                👋 Привіт, Anna (25)
+            </a>
+            <a href="{{ url_for('users.admin') }}" class="list-group-item list-group-item-action">
+                🛡️ Адміністратор (45)
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Сторінка привітання</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Ім’я (великими літерами):</strong> {{ name.upper() }}</p>
+                <p><strong>Вік:</strong> {{ age }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
