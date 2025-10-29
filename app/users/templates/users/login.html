@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% from "_form_macros.html" import render_field %}
+
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-md-6">
@@ -8,16 +10,18 @@
         <h5 class="mb-0">Login</h5>
       </div>
       <div class="card-body">
-        <form method="post" action="{{ url_for('users.login') }}">
-          <div class="mb-3">
-            <label class="form-label">Username</label>
-            <input name="username" class="form-control" required placeholder="student">
+        
+        <form method="POST" action="{{ url_for('users.login') }}" novalidate>
+          
+          {{ form.csrf_token }}
+          {{ render_field(form.username) }}
+          {{ render_field(form.password) }}
+          
+          <div class="form-check mb-3">
+            {{ form.remember(class="form-check-input") }}
+            {{ form.remember.label(class="form-check-label") }}
           </div>
-          <div class="mb-3">
-            <label class="form-label">Password</label>
-            <input name="password" type="password" class="form-control" required placeholder="password123">
-          </div>
-          <button class="btn btn-primary w-100" type="submit">Вхід</button>
+          {{ form.submit(class="btn btn-primary w-100") }}
         </form>
       </div>
     </div>

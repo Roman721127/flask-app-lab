@@ -1,116 +1,129 @@
-from flask import render_template, request, redirect, url_for, flash, session, make_response
+from flask import (
+    render_template, request, redirect, url_for, 
+    flash, session, make_response
+)
 from app.users import bp
-
-VALID_USER = {
-    "username": "student",
-    "password": "password123"
-}
-@bp.route('/hi/<name>')
-def greetings(name):
-    age = request.args.get('age', 'не вказано')
-    return render_template('users/hi.html', name=name.upper(), age=age)
+from app.forms import LoginForm 
+import datetime
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form.get('username', '').strip()
-        password = request.form.get('password', '').strip()
-        if username == VALID_USER['username'] and password == VALID_USER['password']:
-            session['user'] = username
-            flash("Вхід успішний.", "success")
-            return redirect(url_for('users.profile'))
-        else:
-            flash("Невірне ім'я користувача або пароль.", "danger")
-            return redirect(url_for('users.login'))
-    return render_template('users/login.html', title="Login")
+    if 'username' in session:
+        return redirect(url_for('users.profile'))
 
-
-@bp.route('/profile')
-def profile():
-    user = session.get('user')
-    if not user:
-        flash("Будь ласка, увійдіть перед переглядом профілю.", "warning")
-        return redirect(url_for('users.login'))
-    cookies = dict(request.cookies)
-    theme = request.cookies.get('theme', 'light')
-    return render_template('users/profile.html', title="Profile", user=user, cookies=cookies, theme=theme)
-
+    form = LoginForm()
+    if form.validate_on_submit():
+        session['username'] = form.username.data
+        remember = form.remember.data
+        flash(f'Вітаємо, {session["username"]}! Ви успішно увійшли. Запам\'ятати: {remember}', 'success')
+        return redirect(url_for('users.profile'))
+    
+    return render_template('users/login.html', form=form)
 
 @bp.route('/logout')
 def logout():
-    session.pop('user', None)
-    flash("Ви вийшли з системи.", "info")
+    session.pop('username', None)
+    flash('Ви вийшли з системи.', 'info')
     return redirect(url_for('users.login'))
 
-
-@bp.route('/profile/set_cookie', methods=['POST'])
-def set_cookie():
-    user = session.get('user')
-    if not user:
-        flash("Треба увійти.", "danger")
+@bp.route('/profile')
+def profile():
+    if 'username' not in session:
+        flash('Будь ласка, увійдіть, щоб побачити цю сторінку.', 'warning')
         return redirect(url_for('users.login'))
+    
+    cookies = request.cookies 
+    return render_template(
+        'users/profile.html', 
+        user=session['username'], 
+        cookies=cookies
+    )
 
-    key = request.form.get('cookie_key', '').strip()
-    value = request.form.get('cookie_value', '').strip()
-    days = int(request.form.get('cookie_days', 0) or 0)
+@bp.route('/hi/<name>')
+def greetings(name):
+    age = request.args.get('age', 'Невідомо') 
+    return render_template('users/hi.html', name=name, age=age)
 
-    if not key:
-        flash("Ключ cookie має бути заповнений.", "warning")
-        return redirect(url_for('users.profile'))
+@bp.route('/admin')
+def admin():
+    return render_template('users/hi.html', name="ADMINISTRATOR", age=45)
 
-    resp = make_response(redirect(url_for('users.profile')))
-    if days > 0:
-        max_age = days * 24 * 60 * 60
-        resp.set_cookie(key, value, max_age=max_age)
-    else:
-        resp.set_cookie(key, value)
-    flash(f"Cookie '{key}' додано.", "success")
-    return resp
-
-
-@bp.route('/profile/delete_cookie', methods=['POST'])
-def delete_cookie():
-    user = session.get('user')
-    if not user:
-        flash("Треба увійти.", "danger")
-        return redirect(url_for('users.login'))
-
-    key = request.form.get('cookie_key_del', '').strip()
-    resp = make_response(redirect(url_for('users.profile')))
-    if key:
-        resp.delete_cookie(key)
-        flash(f"Cookie '{key}' видалено.", "info")
-    else:
-        flash("Не вказано ключ для видалення.", "warning")
-    return resp
-
-
-@bp.route('/profile/clear_cookies', methods=['POST'])
-def clear_cookies():
-    user = session.get('user')
-    if not user:
-        flash("Треба увійти.", "danger")
-        return redirect(url_for('users.login'))
-
-    resp = make_response(redirect(url_for('users.profile')))
-    for key in request.cookies.keys():
-        resp.delete_cookie(key)
-    flash("Усі cookies видалено.", "info")
-    return resp
-
-
-@bp.route('/profile/theme/<theme>')
+@bp.route('/set_theme/<theme>')
 def set_theme(theme):
-    user = session.get('user')
-    if not user:
-        flash("Треба увійти.", "danger")
+    if 'username' not in session:
+        flash('Будь ласка, увійдіть.', 'warning')
         return redirect(url_for('users.login'))
 
-    if theme not in ('light', 'dark'):
-        flash("Невідома тема.", "warning")
+    resp = make_response(redirect(url_for('users.profile')))
+    
+    expires = datetime.datetime.now() + datetime.timedelta(days=30)
+    resp.set_cookie('theme', theme, expires=expires)
+    
+    flash(f'Тему змінено на "{theme}".', 'info')
+    return resp
+
+@bp.route('/set_cookie', methods=['POST'])
+def set_cookie():
+    if 'username' not in session:
+        flash('Будь ласка, увійдіть.', 'warning')
+        return redirect(url_for('users.login'))
+    
+    key = request.form.get('cookie_key')
+    value = request.form.get('cookie_value')
+    days = request.form.get('cookie_days')
+
+    if key == 'session':
+        flash('Ви не можете змінити cookie сесії!', 'danger')
+        return redirect(url_for('users.profile'))
+        
+    if not key or not value:
+        flash('Ключ та Значення є обов\'язковими.', 'danger')
         return redirect(url_for('users.profile'))
 
     resp = make_response(redirect(url_for('users.profile')))
-    resp.set_cookie('theme', theme, max_age=30*24*60*60)
-    flash(f"Тема змінена на {theme}.", "success")
+    
+    try:
+        if days and int(days) > 0:
+            expires = datetime.datetime.now() + datetime.timedelta(days=int(days))
+            resp.set_cookie(key, value, expires=expires)
+            flash(f'Cookie "{key}" встановлено на {days} днів.', 'success')
+        else:
+            resp.set_cookie(key, value)
+            flash(f'Сесійний cookie "{key}" встановлено.', 'success')
+    except Exception as e:
+        flash(f'Помилка при встановленні cookie: {e}', 'danger')
+
+    return resp
+
+@bp.route('/delete_cookie', methods=['POST'])
+def delete_cookie():
+    if 'username' not in session:
+        flash('Будь ласка, увійдіть.', 'warning')
+        return redirect(url_for('users.login'))
+
+    cookie_key = request.form.get('cookie_key_del')
+    resp = make_response(redirect(url_for('users.profile')))
+    
+    if cookie_key:
+        if cookie_key == 'session':
+             flash('Ви не можете видалити cookie сесії вручну. Натисніть "Вийти".', 'danger')
+        else:
+            resp.delete_cookie(cookie_key)
+            flash(f'Cookie "{cookie_key}" було видалено.', 'info')
+            
+    return resp
+
+@bp.route('/clear_cookies', methods=['POST'])
+def clear_cookies():
+    if 'username' not in session:
+        flash('Будь ласка, увійдіть.', 'warning')
+        return redirect(url_for('users.login'))
+
+    resp = make_response(redirect(url_for('users.profile')))
+    
+    for key in request.cookies:
+        if key != 'session':
+            resp.delete_cookie(key)
+            
+    flash('Всі cookies (окрім сесії) було очищено.', 'info')
     return resp
