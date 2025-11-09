@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card shadow-sm border-0">
+  <div class="card-body">
+    <h1 class="card-title">{{ post.title }}</h1>
+    <h6 class="card-subtitle mb-2 text-muted">
+      Опубліковано: {{ post.posted.strftime('%Y-%m-%d %H:%M') }}
+    </h6>
+    <hr>
+    <div class="mt-3">
+      <p style="white-space: pre-wrap;">{{ post.content }}</p>
+    </div>
+  </div>
+  <div class="card-footer bg-light">
+    <a href="{{ url_for('posts.update', id=post.id) }}" class="btn btn-success">Редагувати</a>
+    <a href="{{ url_for('posts.delete_confirm', id=post.id) }}" class="btn btn-danger">Видалити</a>
+    <a href="{{ url_for('posts.posts') }}" class="btn btn-outline-secondary ms-2">Назад до списку</a>
+  </div>
+</div>
+{% endblock %}

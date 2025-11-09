@@ -15,6 +15,16 @@ class LoginForm(FlaskForm):
     remember = BooleanField('Запам\'ятати мене')
     submit = SubmitField('Увійти')
 
+class PostForm(FlaskForm):
+    title = StringField('Заголовок', validators=[
+        InputRequired(message="Це поле обов'язкове"),
+        Length(min=5, max=100, message="Заголовок має бути від 5 до 100 символів")
+    ])
+    content = TextAreaField('Вміст', validators=[
+        InputRequired(message="Це поле обов'язкове")
+    ])
+    submit = SubmitField('Зберегти')
+
 class ContactForm(FlaskForm):
     name = StringField('Ім\'я', validators=[
         InputRequired(message="Це поле обов'язкове"),
@@ -46,3 +56,5 @@ class ContactForm(FlaskForm):
     ])
     
     submit = SubmitField('Надіслати')
+
+    
