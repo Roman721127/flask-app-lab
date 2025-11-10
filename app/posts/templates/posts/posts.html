@@ -7,18 +7,32 @@
 </div>
 
 {% if posts %}
-  {% for post in posts %}
-  <div class="card mb-3 shadow-sm">
-    <div class="card-body">
-      <h5 class="card-title">{{ post.title }}</h5>
-      <h6 class="card-subtitle mb-2 text-muted">
-        Опубліковано: {{ post.posted.strftime('%Y-%m-%d %H:%M') }}
-      </h6>
-      <p class="card-text">{{ post.content[:200] }}...</p>
-      <a href="{{ url_for('posts.post_detail', id=post.id) }}" class="btn btn-outline-primary">Читати далі</a>
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    
+    {% for post in posts %}
+    <div class="col">
+      <div class="card h-100 shadow-sm">
+        
+        <img src="{{ url_for('static', filename='images/postdefault.png') }}" class="card-img-top" alt="Зображення поста">
+        
+        <div class="card-body">
+  <h5 class="card-title">{{ post.title }}</h5>
+
+  <h6 class="card-subtitle mb-2 text-muted">
+    Автор: {{ post.author or "Анонім" }}
+    <br>
+    <small>Опубліковано: {{ post.posted.strftime('%Y-%m-%d %H:%M') }}</small>
+  </h6>
+  <p class="card-text">{{ post.content[:100] }}...</p>
+</div>
+        <div class="card-footer bg-light border-0">
+           <a href="{{ url_for('posts.post_detail', id=post.id) }}" class="btn btn-outline-primary">Читати далі</a>
+        </div>
+      </div>
     </div>
+    {% endfor %}
+
   </div>
-  {% endfor %}
 {% else %}
   <p>Ще немає жодного поста. Будьте першим!</p>
 {% endif %}

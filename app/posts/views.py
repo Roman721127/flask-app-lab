@@ -17,7 +17,8 @@ def create():
     if form.validate_on_submit():
         new_post = Post(
             title=form.title.data,
-            content=form.content.data
+            content=form.content.data,
+            author=form.author.data
         )
         db.session.add(new_post)
         db.session.commit()
@@ -45,6 +46,7 @@ def update(id):
     if form.validate_on_submit():
         post.title = form.title.data
         post.content = form.content.data
+        post.author = form.author.data
         db.session.commit()
         flash('Пост успішно оновлено!', 'success')
         return redirect(url_for('posts.post_detail', id=post.id))

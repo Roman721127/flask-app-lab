@@ -6,18 +6,18 @@ from datetime import datetime, timezone
 
 class Base(db.Model):
     __abstract__ = True
-    
     def now_utc(self):
         return datetime.now(timezone.utc)
 
 class Post(Base):
+    __tablename__ = 'post'
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    
     title: Mapped[str] = mapped_column(String(100), nullable=False)
-    
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    
     posted: Mapped[datetime] = mapped_column(DateTime, default=sa.func.now())
+    
+    author: Mapped[str] = mapped_column(String(100), nullable=True)
 
     def __repr__(self):
         return f'<Post {self.title}>'

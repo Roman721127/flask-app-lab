@@ -23,6 +23,9 @@ class PostForm(FlaskForm):
     content = TextAreaField('Вміст', validators=[
         InputRequired(message="Це поле обов'язкове")
     ])
+    author = StringField('Автор', validators=[
+        InputRequired(message="Вкажіть ім'я автора")
+    ])
     submit = SubmitField('Зберегти')
 
 class ContactForm(FlaskForm):
