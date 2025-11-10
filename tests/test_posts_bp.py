@@ -16,7 +16,11 @@ class PostsBlueprintTestCase(unittest.TestCase):
         
         db.create_all()
         
-        p1 = Post(title='Тестовий Пост 1', content='Тестовий Контент 1')
+        p1 = Post(
+            title='Тестовий Пост 1', 
+            content='Тестовий Контент 1', 
+            author='Перший Автор'
+        )
         db.session.add(p1)
         db.session.commit()
 
@@ -33,6 +37,7 @@ class PostsBlueprintTestCase(unittest.TestCase):
         
         self.assertIn('Тестовий Пост 1'.encode('utf-8'), response.data)
         self.assertIn(b'postdefault.png', response.data)
+        self.assertIn('Перший Автор'.encode('utf-8'), response.data)
 
     def test_2_post_detail_page(self):
         """Тест: Чи завантажується сторінка одного поста."""
@@ -41,6 +46,7 @@ class PostsBlueprintTestCase(unittest.TestCase):
         
         self.assertIn('Тестовий Пост 1'.encode('utf-8'), response.data)
         self.assertIn('Тестовий Контент 1'.encode('utf-8'), response.data)
+        self.assertIn('Перший Автор'.encode('utf-8'), response.data)
 
     def test_3_create_post(self):
         """Тест: Створення нового поста (CREATE)."""
@@ -49,16 +55,18 @@ class PostsBlueprintTestCase(unittest.TestCase):
 
         response_post = self.client.post('/post/create', data={
             'title': 'Новий Тестовий Пост',
-            'content': 'Це пост, створений тестом.'
+            'content': 'Це пост, створений тестом.',
+            'author': 'Тестовий Автор' 
         }, follow_redirects=True) 
 
         self.assertEqual(response_post.status_code, 200)
         
         self.assertIn('Новий Тестовий Пост'.encode('utf-8'), response_post.data)
+        self.assertIn('Тестовий Автор'.encode('utf-8'), response_post.data)
         
         post = db.session.get(Post, 2)
         self.assertIsNotNone(post)
-        self.assertEqual(post.title, 'Новий Тестовий Пост')
+        self.assertEqual(post.author, 'Тестовий Автор')
 
     def test_4_update_post(self):
         """Тест: Оновлення існуючого поста (UPDATE)."""
@@ -67,16 +75,18 @@ class PostsBlueprintTestCase(unittest.TestCase):
 
         response_post = self.client.post('/post/1/update', data={
             'title': 'Оновлений Заголовок',
-            'content': 'Оновлений контент.'
+            'content': 'Оновлений контент.',
+            'author': 'Оновлений Автор'
         }, follow_redirects=True)
 
         self.assertEqual(response_post.status_code, 200)
         
         self.assertIn('Оновлений Заголовок'.encode('utf-8'), response_post.data)
-        self.assertIn('Оновлений контент.'.encode('utf-8'), response_post.data)
+        self.assertIn('Оновлений Автор'.encode('utf-8'), response_post.data)
 
         post = db.session.get(Post, 1)
         self.assertEqual(post.title, 'Оновлений Заголовок')
+        self.assertEqual(post.author, 'Оновлений Автор')
 
     def test_5_delete_post(self):
         """Тест: Видалення поста (DELETE)."""
