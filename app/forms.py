@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, SelectField
+from wtforms import StringField,SelectField, TextAreaField, SubmitField, BooleanField, PasswordField, SelectMultipleField, widgets
 from wtforms.validators import InputRequired, Length, Email, Regexp
 
 class LoginForm(FlaskForm):
@@ -26,6 +26,24 @@ class PostForm(FlaskForm):
     author = StringField('Автор', validators=[
         InputRequired(message="Вкажіть ім'я автора")
     ])
+    submit = SubmitField('Зберегти')
+
+class PostForm(FlaskForm):
+    title = StringField('Заголовок', validators=[
+        InputRequired(message="Це поле обов'язкове"),
+        Length(min=5, max=100, message="Заголовок має бути від 5 до 100 символів")
+    ])
+    content = TextAreaField('Вміст', validators=[
+        InputRequired(message="Це поле обов'язкове")
+    ])
+    author = StringField('Автор', validators=[
+        InputRequired(message="Вкажіть ім'я автора")
+    ])
+
+    category = SelectField('Категорія', coerce=int)
+    
+    tags = SelectMultipleField('Теги', coerce=int)
+    
     submit = SubmitField('Зберегти')
 
 class ContactForm(FlaskForm):

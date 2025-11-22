@@ -9,8 +9,11 @@
   {{ render_field(form.title) }}
   
   {{ render_field(form.author) }}
-  
-  {{ render_field(form.content) }}
+{{ render_field(form.category) }}
+{{ render_field(form.tags) }}
+<div class="form-text mb-3">Утримуйте Ctrl (або Cmd), щоб вибрати кілька варіантів.</div>
+
+{{ render_field(form.content) }}
   
   {{ form.submit(class="btn btn-primary") }}
   <a href="{{ url_for('posts.posts') }}" class="btn btn-outline-secondary">Скасувати</a>

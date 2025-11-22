@@ -5,10 +5,11 @@
   <h1 class="card-title">{{ post.title }}</h1>
 
   <h6 class="card-subtitle mb-2 text-muted">
-    Автор: {{ post.author or "Анонім" }}
-    <br>
-    <small>Опубліковано: {{ post.posted.strftime('%Y-%m-%d %H:%M') }}</small>
-  </h6>
+  Автор: {{ post.author.username if post.author else "Анонім" }} | 
+  Категорія: <span class="text-primary">{{ post.category.name if post.category else "Без категорії" }}</span>
+  <br>
+  <small>Опубліковано: {{ post.posted.strftime('%Y-%m-%d %H:%M') }}</small>
+</h6>
   <hr>
   <div class="mt-3">
       <p style="white-space: pre-wrap;">{{ post.content }}</p>

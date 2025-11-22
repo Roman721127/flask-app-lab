@@ -4,6 +4,7 @@ from app import db
 from app.models import Post
 from app.forms import PostForm
 import sqlalchemy as sa
+from app.models import Post, Tag, User, Category
 
 @bp.route('/')
 def posts():
@@ -14,16 +15,38 @@ def posts():
 @bp.route('/create', methods=['GET', 'POST'])
 def create():
     form = PostForm()
+    
+    form.tags.choices = [(t.id, t.name) for t in db.session.scalars(db.select(Tag))]
+    
+    form.category.choices = [(c.id, c.name) for c in db.session.scalars(db.select(Category))]
+
     if form.validate_on_submit():
+        author_name = form.author.data
+        user = db.session.scalar(db.select(User).where(User.username == author_name))
+        
+        if not user:
+            flash(f'Користувача "{author_name}" не знайдено!', 'danger')
+            return render_template('posts/create.html', form=form, title="Новий пост")
+
         new_post = Post(
             title=form.title.data,
             content=form.content.data,
-            author=form.author.data
+            author=user,
+            category_id=form.category.data
         )
+        
+        selected_tags = []
+        for tag_id in form.tags.data:
+            tag = db.session.get(Tag, tag_id)
+            if tag:
+                selected_tags.append(tag)
+        new_post.tags = selected_tags
+        
         db.session.add(new_post)
         db.session.commit()
         flash('Пост успішно створено!', 'success')
         return redirect(url_for('posts.posts'))
+        
     return render_template('posts/create.html', form=form, title="Новий пост")
 
 @bp.route('/<int:id>')
@@ -38,18 +61,39 @@ def post_detail(id):
 def update(id):
     post = db.session.get(Post, id)
     if post is None:
-        flash('Пост не знайдено.', 'danger')
         return redirect(url_for('posts.posts'))
-
-    form = PostForm(obj=post) 
+    
+    form = PostForm()
+    form.tags.choices = [(t.id, t.name) for t in db.session.scalars(db.select(Tag))]
+    
+    form.category.choices = [(c.id, c.name) for c in db.session.scalars(db.select(Category))]
     
     if form.validate_on_submit():
+        user = db.session.scalar(db.select(User).where(User.username == form.author.data))
+        if user:
+            post.author = user
+            
         post.title = form.title.data
         post.content = form.content.data
-        post.author = form.author.data
+        post.category_id = form.category.data
+        
+        selected_tags = []
+        for tag_id in form.tags.data:
+            tag = db.session.get(Tag, tag_id)
+            if tag:
+                selected_tags.append(tag)
+        post.tags = selected_tags
+        
         db.session.commit()
-        flash('Пост успішно оновлено!', 'success')
+        flash('Оновлено!', 'success')
         return redirect(url_for('posts.post_detail', id=post.id))
+    
+    if request.method == 'GET':
+        form.title.data = post.title
+        form.content.data = post.content
+        form.author.data = post.author.username if post.author else ""
+        form.tags.data = [t.id for t in post.tags]
+        form.category.data = post.category_id
 
     return render_template('posts/create.html', form=form, title="Редагувати пост")
 
