@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% from "_form_macros.html" import render_field %}
+
+{% block content %}
+<h2 class="mb-3">Зв'яжіться зі мною</h2>
+
+<form class="bg-light p-4 rounded" method="POST" action="{{ url_for('contacts') }}" novalidate>
+    
+    {{ form.csrf_token }}
+    {{ render_field(form.name) }}
+    {{ render_field(form.email) }}
+    {{ render_field(form.phone) }}
+    {{ render_field(form.subject) }}
+    {{ render_field(form.message) }}
+    {{ form.submit(class="btn btn-dark w-100") }}
+</form>
+{% endblock %}
